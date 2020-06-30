@@ -7,9 +7,10 @@ def main():
     parser.add_argument("--type",
                         choices=[
                             "all_discrete", "all_continuous", "aacn_discrete",
-                            "aacn_continuous", "ppo_discrete", "ppo_continuous"
+                            "aacn_continuous", "ppo_discrete",
+                            "ppo_continuous", "test"
                         ],
-                        default="aacn_discrete")
+                        default="test")
     args = parser.parse_args()
 
     if args.type == "all_discrete":
@@ -21,8 +22,10 @@ def main():
     elif args.type == "aacn_continuous":
         pass
     elif args.type == "ppo_discrete":
-        pass
+        trainer.train_ppo_discrete()
     elif args.type == "ppo_continuous":
+        trainer.train_ppo_continuous()
+    else:
         pass
 
 

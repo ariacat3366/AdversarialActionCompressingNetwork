@@ -35,4 +35,4 @@ if __name__ == "__main__":
     sample = multi_norm2d()
     plt.figure(figsize=(5, 5))
     plt.scatter(sample[:, 0], sample[:, 1], marker='.')
-    plt.savefig("../log/test_multi_norm2d.png", format="png", dpi=100)
+    plt.savefig("../log/figure/test_multi_norm2d.png", format="png", dpi=100)

@@ -1,4 +1,5 @@
 import argparse
+
 import trainer
 
 
@@ -25,8 +26,8 @@ def main():
         trainer.train_ppo_discrete()
     elif args.type == "ppo_continuous":
         trainer.train_ppo_continuous()
-    else:
-        pass
+    elif args.type == "test":
+        trainer.train_aacn_discrete()
 
 
 if __name__ == "__main__":

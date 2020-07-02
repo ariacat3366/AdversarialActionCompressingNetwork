@@ -97,7 +97,3 @@ def train_ppo_continuous():
                 i_episode, avg_length, running_reward))
             running_reward = 0
             avg_length = 0
-
-
-if __name__ == '__main__':
-    train_ppo_continuous()

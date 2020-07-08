@@ -67,8 +67,6 @@ class ActorCritic(nn.Module):
 class AACN(nn.Module):
     def __init__(self, state_dim, e_dim, action_dim, latent_dim):
         super(AACN, self).__init__()
-        self.device = torch.device(
-            "cuda:0" if torch.cuda.is_available() else "cpu")
 
         self.g_layer = nn.Sequential(nn.Linear(state_dim * 2, latent_dim),
                                      nn.Tanh(),
@@ -87,12 +85,18 @@ class AACN(nn.Module):
 
     def forward(self, inputs):
         e = self.g_layer(inputs)
-        outputs = self.f_layer(e)
-        return outputs
+        f_outputs = self.f_layer(e)
+        h_outputs = self.h_layer(e)
+        return f_outputs, h_outputs
 
-    def train(self, x_real, x_fake, y):
-        pass
+    def forward_g(self, inputs):
+        outputs = self.f_layer(inputs)
+        return outputs
 
     def forward_f(self, e):
         outputs = self.f_layer(e)
+        return outputs
+
+    def forward_h(self, inputs):
+        outputs = self.h_layer(inputs)
         return outputs

@@ -21,11 +21,12 @@ def multi_norm2d(radius=1.5, num_dist=10, num_sample=1000):
     result = np.zeros((num_sample, 2))
     for i in range(num_dist):
         pi = math.pi * 2 * i / num_dist
+        num_each_sample = num_sample // num_dist
         dist = norm2d(x=radius,
                       y=0,
                       var_x=0.5,
                       var_y=0.1,
-                      num_sample=num_sample // num_dist,
+                      num_sample=num_each_sample,
                       pi=pi)
         result[i * num_each_sample:(i + 1) * num_each_sample] = dist
     return result

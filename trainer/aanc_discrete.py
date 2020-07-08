@@ -158,9 +158,6 @@ def train_aacn_discrete():
             aacn.to('cpu').state_dict(), os.path.join(model_dir, model_name))
 
     else:
-        # aacn.load_state_dict(
-        #     torch.load(os.path.join(model_dir, model_name),
-        #                map_location=device))
         aacn.load_state_dict(
             torch.load(os.path.join(model_dir, model_name),
                        map_location="cpu"))

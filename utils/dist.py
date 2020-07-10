@@ -37,4 +37,3 @@ if __name__ == "__main__":
     plt.figure(figsize=(5, 5))
     plt.scatter(sample[:, 0], sample[:, 1], marker='.')
     plt.savefig("../log/figure/test_multi_norm2d.png", format="png", dpi=100)
-)

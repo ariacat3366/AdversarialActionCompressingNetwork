@@ -66,3 +66,42 @@ class ActorCritic(nn.Module):
         state_value = self.critic(state)
 
         return action_logprobs, torch.squeeze(state_value), dist_entropy
+
+
+class AACN(nn.Module):
+    def __init__(self, state_dim, e_dim, action_dim, latent_dim):
+        super(AACN, self).__init__()
+
+        self.g_layer = nn.Sequential(nn.Linear(state_dim * 2, latent_dim),
+                                     nn.Tanh(),
+                                     nn.Linear(latent_dim, latent_dim),
+                                     nn.Tanh(), nn.Linear(latent_dim, e_dim),
+                                     nn.Tanh())
+
+        self.f_layer = nn.Sequential(nn.Linear(e_dim, latent_dim), nn.Tanh(),
+                                     nn.Linear(latent_dim, latent_dim),
+                                     nn.Tanh(),
+                                     nn.Linear(latent_dim, action_dim),
+                                     nn.Tanh())
+
+        self.h_layer = nn.Sequential(nn.Linear(e_dim, latent_dim), nn.Tanh(),
+                                     nn.Linear(latent_dim, latent_dim),
+                                     nn.Tanh(), nn.Linear(latent_dim, 1))
+
+    def forward(self, inputs):
+        e = self.g_layer(inputs)
+        f_outputs = self.f_layer(e)
+        h_outputs = self.h_layer(e)
+        return f_outputs, h_outputs
+
+    def forward_g(self, inputs):
+        outputs = self.f_layer(inputs)
+        return outputs
+
+    def forward_f(self, e):
+        outputs = self.f_layer(e)
+        return outputs
+
+    def forward_h(self, inputs):
+        outputs = self.h_layer(inputs)
+        return outputs

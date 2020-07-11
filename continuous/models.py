@@ -86,7 +86,8 @@ class AACN(nn.Module):
 
         self.h_layer = nn.Sequential(nn.Linear(e_dim, latent_dim), nn.Tanh(),
                                      nn.Linear(latent_dim, latent_dim),
-                                     nn.Tanh(), nn.Linear(latent_dim, 1))
+                                     nn.Tanh(), nn.Linear(latent_dim, 1),
+                                     nn.Sigmoid())
 
     def forward(self, inputs):
         e = self.g_layer(inputs)

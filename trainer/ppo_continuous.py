@@ -9,9 +9,15 @@ from continuous.ppo import PPO
 
 def train_ppo_continuous():
     ############## Hyperparameters ##############
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    env_name = "BipedalWalker-v3"
-    render = False
+
+    # creating environment
+    env_name = "LunarLanderContinuous-v2"
+    env = gym.make(env_name)
+    state_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.shape[0]
+
     solved_reward = 300  # stop training if avg_reward > solved_reward
     log_interval = 20  # print avg reward in the interval
     max_episodes = 10000  # max training episodes
@@ -22,17 +28,11 @@ def train_ppo_continuous():
     K_epochs = 80  # update policy for K epochs
     eps_clip = 0.2  # clip parameter for PPO
     gamma = 0.99  # discount factor
-
     lr = 0.0003  # parameters for Adam optimizer
     betas = (0.9, 0.999)
 
-    random_seed = None
+    random_seed = 0
     #############################################
-
-    # creating environment
-    env = gym.make(env_name)
-    state_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.shape[0]
 
     if random_seed:
         print("Random Seed: {}".format(random_seed))
@@ -69,8 +69,6 @@ def train_ppo_continuous():
                 memory.clear_memory()
                 time_step = 0
             running_reward += reward
-            if render:
-                env.render()
             if done:
                 break
 

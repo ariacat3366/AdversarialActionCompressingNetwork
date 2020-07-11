@@ -5,20 +5,16 @@ import trainer
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--type",
-                        choices=[
-                            "all_discrete", "all_continuous", "aacn",
-                            "ppo_discrete", "ppo_continuous", "test"
-                        ],
-                        default="test")
+    parser.add_argument(
+        "--type",
+        choices=["aacn", "ppo_aacn", "ppo_discrete", "ppo_continuous", "test"],
+        default="test")
     args = parser.parse_args()
 
-    if args.type == "all_discrete":
-        pass
-    elif args.type == "all_continuous":
-        pass
-    elif args.type == "aacn":
-        pass
+    if args.type == "aacn":
+        trainer.train_aacn()
+    elif args.type == "ppo_aacn":
+        trainer.train_ppo_aacn()
     elif args.type == "ppo_discrete":
         trainer.train_ppo_discrete()
     elif args.type == "ppo_continuous":

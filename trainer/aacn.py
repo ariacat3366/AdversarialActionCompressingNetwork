@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import continuous
 import utils
 
-# discriminator
 # ppo + aacn vs ppo only
 # 追加実験
 # 回答書
@@ -150,10 +149,12 @@ def train_aacn():
         aacn.to(device)
         aacn.train()
 
-        losses = []
+        losses_gen = []
+        losses_dis = []
 
         # training loop
         for i_episode in range(1, epoch + 1):
+            print(f"episode: {i_episode}")
             aacn.train()
             aacn.to(device)
             for i in range(sample_size // batch_size):
@@ -163,6 +164,10 @@ def train_aacn():
                 d_batch = list_dist[batch_size * i:batch_size * (i + 1)]
 
                 ### discriminator ###
+                g_optimizer.zero_grad()
+                f_optimizer.zero_grad()
+                h_optimizer.zero_grad()
+
                 d_real_outputs = aacn.h_layer(d_batch)
 
                 e_outputs = aacn.g_layer(x_batch)
@@ -172,30 +177,31 @@ def train_aacn():
                 loss_dis_fake = criterion_discriminator(d_fake_outputs, y_fake)
                 loss_dis = loss_dis_real + loss_dis_fake
 
-                h_optimizer.zero_grad()
-
                 loss_dis.backward()
 
                 h_optimizer.step()
 
+                losses_dis.append(loss_dis.item())
+
                 ### encoder, decoder ###
+                g_optimizer.zero_grad()
+                f_optimizer.zero_grad()
+                h_optimizer.zero_grad()
+
                 e_outputs = aacn.g_layer(x_batch)
                 a_outputs = aacn.f_layer(e_outputs)
                 d_fake_outputs = aacn.h_layer(e_outputs)
 
                 loss_gen = criterion(a_outputs, y_batch)
-                loss_dis = criterion(d_fake_outputs, y_real)
-                loss = loss_gen + loss_dis * 1.0
-
-                g_optimizer.zero_grad()
-                f_optimizer.zero_grad()
+                loss_dis = criterion_discriminator(d_fake_outputs, y_real)
+                loss = loss_gen * 10 + loss_dis * 0.03
 
                 loss.backward()
 
                 g_optimizer.step()
                 f_optimizer.step()
 
-                losses.append(loss.item())
+                losses_gen.append(loss.item())
 
             # logging
             if i_episode % log_interval == 0:
@@ -217,7 +223,9 @@ def train_aacn():
 
                     if not os.path.exists(fig_dir + "loss/"):
                         os.makedirs(fig_dir + "loss/")
-                    plt.plot(losses)
+
+                    plt.plot(losses_gen, label="gen")
+                    plt.plot(losses_dis, label="dis")
                     plt.savefig(
                         os.path.join(fig_dir + "loss/",
                                      "losses_ep_" + str(i_episode) + ".png"))
@@ -230,8 +238,10 @@ def train_aacn():
         torch.save(
             aacn.to('cpu').state_dict(), os.path.join(model_dir, model_name))
 
-        plt.plot(losses)
+        plt.plot(losses_gen, label="gen")
+        plt.plot(losses_dis, label="dis")
         plt.savefig(os.path.join(fig_dir, "losses" + ".png"))
+        plt.close()
 
     else:
         aacn.load_state_dict(

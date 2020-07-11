@@ -1,5 +1,7 @@
 import torch
 import gym
+import numpy as np
+import matplotlib.pyplot as plt
 
 from discrete.models import Memory
 from discrete.ppo import PPO
@@ -7,30 +9,36 @@ from discrete.ppo import PPO
 
 def train_ppo_discrete():
     ############## Hyperparameters ##############
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    env_name = "LunarLander-v2"
+
     # creating environment
+    env_name = "LunarLander-v2"
     env = gym.make(env_name)
     state_dim = env.observation_space.shape[0]
     action_dim = 4
-    render = False
+    n_latent_var = 64  # number of variables in hidden layer
+
     solved_reward = 230  # stop training if avg_reward > solved_reward
     log_interval = 20  # print avg reward in the interval
     max_episodes = 50000  # max training episodes
     max_timesteps = 300  # max timesteps in one episode
-    n_latent_var = 64  # number of variables in hidden layer
+
     update_timestep = 2000  # update policy every n timesteps
-    lr = 0.002
-    betas = (0.9, 0.999)
     gamma = 0.99  # discount factor
     K_epochs = 4  # update policy for K epochs
     eps_clip = 0.2  # clip parameter for PPO
+    lr = 0.002
+    betas = (0.9, 0.999)
+
     random_seed = 0
     #############################################
 
     if random_seed:
+        print("Random Seed: {}".format(random_seed))
         torch.manual_seed(random_seed)
         env.seed(random_seed)
+        np.random.seed(random_seed)
 
     memory = Memory()
     ppo = PPO(state_dim, action_dim, n_latent_var, lr, betas, gamma, K_epochs,

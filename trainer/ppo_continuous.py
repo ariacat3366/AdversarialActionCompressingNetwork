@@ -2,23 +2,33 @@ import torch
 import torch.nn as nn
 import gym
 import numpy as np
+import os
+import matplotlib.pyplot as plt
 
 from continuous.models import Memory
 from continuous.ppo import PPO
 
 
-def train_ppo_continuous():
+def train_ppo_continuous(trial=0, seed=0, save_npy=False):
     ############## Hyperparameters ##############
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    random_seed = seed
+    data_dir = "./log/data/"
+    model_dir = "./log/model/"
+    model_name = "aacn-LunarLander-v2-dist4.pth"
+    fig_dir = "./log/figure/ppo/"
 
     # creating environment
     env_name = "LunarLanderContinuous-v2"
     env = gym.make(env_name)
+
+    # model
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]
 
-    solved_reward = 300  # stop training if avg_reward > solved_reward
+    # train
+    solved_reward = 220  # stop training if avg_reward > solved_reward
     log_interval = 20  # print avg reward in the interval
     max_episodes = 10000  # max training episodes
     max_timesteps = 1500  # max timesteps in one episode
@@ -30,8 +40,6 @@ def train_ppo_continuous():
     gamma = 0.99  # discount factor
     lr = 0.0003  # parameters for Adam optimizer
     betas = (0.9, 0.999)
-
-    random_seed = 0
     #############################################
 
     if random_seed:
@@ -51,10 +59,13 @@ def train_ppo_continuous():
     time_step = 0
 
     # training loop
+    episode_score_list = []
     for i_episode in range(1, max_episodes + 1):
         state = env.reset()
+        episode_score = 0
         for t in range(max_timesteps):
             time_step += 1
+
             # Running policy_old:
             action = ppo.select_action(state, memory)
             state, reward, done, _ = env.step(action)
@@ -69,22 +80,21 @@ def train_ppo_continuous():
                 memory.clear_memory()
                 time_step = 0
             running_reward += reward
+            episode_score += reward
             if done:
                 break
 
+        episode_score_list.append(episode_score)
         avg_length += t
 
         # stop training if avg_reward > solved_reward
         if running_reward > (log_interval * solved_reward):
             print("########## Solved! ##########")
-            torch.save(ppo.policy.state_dict(),
-                       './PPO_continuous_solved_{}.pth'.format(env_name))
+            torch.save(
+                ppo.policy.to('cpu').state_dict(),
+                os.path.join(model_dir,
+                             'PPO_continuous_{}.pth'.format(env_name)))
             break
-
-        # save every 500 episodes
-        if i_episode % 500 == 0:
-            torch.save(ppo.policy.state_dict(),
-                       './PPO_continuous_{}.pth'.format(env_name))
 
         # logging
         if i_episode % log_interval == 0:
@@ -95,3 +105,16 @@ def train_ppo_continuous():
                 i_episode, avg_length, running_reward))
             running_reward = 0
             avg_length = 0
+
+    if not os.path.exists(fig_dir):
+        os.makedirs(fig_dir)
+    plt.plot(episode_score_list)
+    plt.savefig(os.path.join(fig_dir, "score_aacn.png"))
+    plt.close()
+
+    if save_npy:
+        npy_dir = os.path.join(data_dir, "continuous")
+        if not os.path.exists(npy_dir):
+            os.makedirs(npy_dir)
+        np.save(os.path.join(npy_dir, f"trial_{trial}.npy"),
+                np.array(episode_score_list))

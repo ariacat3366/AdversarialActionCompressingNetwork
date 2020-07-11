@@ -9,14 +9,15 @@ from discrete.ppo import PPO
 from continuous import AACN
 
 
-def train_ppo_aacn():
+def train_ppo_aacn(trial=0, seed=0, save_npy=False):
     ############## Hyperparameters ##############
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    random_seed = 0
+    random_seed = seed
     data_dir = "./log/data/"
     model_dir = "./log/model/"
     model_name = "aacn-LunarLander-v2-dist4.pth"
+    fig_dir = "./log/figure/ppo/"
 
     # env
     env_name = "LunarLanderContinuous-v2"
@@ -31,7 +32,7 @@ def train_ppo_aacn():
     n_latent_var = 64  # number of variables in hidden layer
 
     # train
-    solved_reward = 300  # stop training if avg_reward > solved_reward
+    solved_reward = 220  # stop training if avg_reward > solved_reward
     log_interval = 20  # print avg reward in the interval
     max_episodes = 10000  # max training episodes
     max_timesteps = 1500  # max timesteps in one episode
@@ -42,11 +43,6 @@ def train_ppo_aacn():
     eps_clip = 0.2
     lr = 0.001
     betas = (0.9, 0.999)  # clip parameter for PPO
-
-    random_seed = 0
-
-    # figure
-    fig_dir = "./log/figure/ppo/"
     #############################################
 
     if random_seed:
@@ -62,6 +58,8 @@ def train_ppo_aacn():
     action_coordinates = torch.from_numpy(action_coordinates).float()
     action_list = aacn.f_layer(action_coordinates)
     action_list = action_list.data.numpy()
+
+    print("action_list")
     print(action_list)
 
     memory = Memory()
@@ -74,10 +72,11 @@ def train_ppo_aacn():
     avg_length = 0
     timestep = 0
 
-    score = []
+    episode_score_list = []
     # training loop
     for i_episode in range(1, max_episodes + 1):
         state = env.reset()
+        episode_score = 0
         for t in range(max_timesteps):
             timestep += 1
 
@@ -97,10 +96,11 @@ def train_ppo_aacn():
                 timestep = 0
 
             running_reward += reward
+            episode_score += reward
             if done:
                 break
-        score.append(running_reward)
 
+        episode_score_list.append(episode_score)
         avg_length += t
 
         # stop training if avg_reward > solved_reward
@@ -123,6 +123,13 @@ def train_ppo_aacn():
 
     if not os.path.exists(fig_dir):
         os.makedirs(fig_dir)
-    plt.plot(score)
+    plt.plot(episode_score_list)
     plt.savefig(os.path.join(fig_dir, "score_aacn.png"))
     plt.close()
+
+    if save_npy:
+        npy_dir = os.path.join(data_dir, "aacn")
+        if not os.path.exists(npy_dir):
+            os.makedirs(npy_dir)
+        np.save(os.path.join(npy_dir, f"trial_{trial}.npy"),
+                np.array(episode_score_list))

@@ -19,7 +19,7 @@ def train_ppo_discrete():
     action_dim = 4
     n_latent_var = 64  # number of variables in hidden layer
 
-    solved_reward = 230  # stop training if avg_reward > solved_reward
+    solved_reward = 220  # stop training if avg_reward > solved_reward
     log_interval = 20  # print avg reward in the interval
     max_episodes = 50000  # max training episodes
     max_timesteps = 300  # max timesteps in one episode

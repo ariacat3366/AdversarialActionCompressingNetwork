@@ -32,14 +32,15 @@ def train_ppo_aacn(trial=0, seed=0, save_npy=False):
     n_latent_var = 64  # number of variables in hidden layer
 
     # train
-    solved_reward = 220  # stop training if avg_reward > solved_reward
+    solved_reward = 250  # stop training if avg_reward > solved_reward
     log_interval = 20  # print avg reward in the interval
-    max_episodes = 10000  # max training episodes
-    max_timesteps = 1500  # max timesteps in one episode
+    max_episodes = 2000  # max training episodes
+    max_timesteps = 800  # max timesteps in one episode
 
     update_timestep = 2000  # update policy every n timesteps
     gamma = 0.99  # discount factor
-    K_epochs = 4  # update policy for K epochs
+    # K_epochs = 4  # update policy for K epochs
+    K_epochs = 20  # update policy for K epochs
     eps_clip = 0.2
     lr = 0.001
     betas = (0.9, 0.999)  # clip parameter for PPO

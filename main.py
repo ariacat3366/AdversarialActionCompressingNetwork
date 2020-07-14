@@ -24,7 +24,7 @@ def main():
     elif args.type == "test":
         trainer.train_aacn()
     elif args.type == "trial_training":
-        for i in range(5):
+        for i in range(10):
             print(f"trial: {i}")
             print(f"train aacn")
             trainer.train_ppo_aacn(trial=i, seed=i, save_npy=True)
